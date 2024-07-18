@@ -8,18 +8,19 @@ WITH CTE AS (
       WHEN `Online or In-Person` = 1 THEN 'Online'
       WHEN `Online or In-Person` = 2 THEN 'In-Person'
     END AS online_in_person,
-    QUARTER(`Transaction Date`) AS quarter,
+    QUARTER(STR_TO_DATE(`Transaction Date`, '%d/%m/%Y %H:%i:%s')) AS quarter,
     SUM(value) AS total_value
   FROM `pd_week1_2023`
   WHERE LEFT(`Transaction Code`, 3) = 'DSB'
-  GROUP BY online_in_person, quarter
+  GROUP BY 1,2
 )
 
-SELECT 
-  T.`Online or In-Person`,
-  V.total_value,
-  U.target,
-  V.total_value - U.target AS variance_from_target
+
+SELECT U.`Online or In-Person`,
+U.quarter,
+U.target as Quarterly_Targets,
+V.total_value,
+(V.total_value - U.target) as Variance_to_Target
 FROM `pd_week3_2023` AS T
 INNER JOIN (
   SELECT 
@@ -43,7 +44,7 @@ INNER JOIN (
   FROM `pd_week3_2023`
 ) AS U
 ON T.`Online or In-Person` = U.`Online or In-Person`
-AND CAST(REPLACE(T.quarter, 'Q', '') AS UNSIGNED) = CAST(U.quarter AS UNSIGNED)
 INNER JOIN CTE AS V 
 ON T.`Online or In-Person`= V.online_in_person 
-AND T.quarter = V.quarter;
+AND U.quarter = V.quarter
+GROUP BY U.quarter, U.`Online or In-Person`, U.target;
