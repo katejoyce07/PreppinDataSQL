@@ -83,7 +83,7 @@ CATEGORIES AS (
     GROUP BY `customer_id`
 )
 SELECT 
-    `fan_category` AS `preference`,
-    ROUND((COUNT(`customer_id`) / (SELECT COUNT(`customer_id`) FROM `CATEGORIES`)) * 100, 1) AS `percent_of_customers`
+    `fan_category` AS `Preference`,
+    ROUND((COUNT(`customer_id`) / (SELECT COUNT(`customer_id`) FROM `CATEGORIES`)) * 100, 1) AS `% of Total`
 FROM `CATEGORIES`
 GROUP BY `fan_category`;
