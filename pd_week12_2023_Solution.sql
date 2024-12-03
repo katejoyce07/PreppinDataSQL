@@ -14,7 +14,8 @@ BANK_HOLS AS (
     FROM FILL_YEAR
     WHERE `Date` <> '' 
 )
-, REPORTING_WITH_FLAG AS(
+    
+,  REPORTING_WITH_FLAG AS(
 SELECT 
     STR_TO_DATE(UK.`Date`, '%d/%m/%Y') AS date, 
     dayname(STR_TO_DATE(UK.`Date`, '%d/%m/%Y')) as weekday,
@@ -31,11 +32,13 @@ LEFT JOIN
 ON 
     STR_TO_DATE(UK.`Date`, '%d/%m/%Y') = BH.date
 )
+    
 , NON_REPORTING_DATES AS(
 SELECT DISTINCT(date) as non_reporting_date
 from REPORTING_WITH_FLAG
 WHERE reporting_flag = 'N'
 ) 
+    
 , REPORTING_LOOKUP AS (
 SELECT non_reporting_date,
 min(date) as next_reporting_date
@@ -44,6 +47,7 @@ INNER JOIN NON_REPORTING_DATES AS NR ON NR.non_reporting_date < R.date
 where reporting_flag = 'Y'
 group by non_reporting_date
 )
+    
 , UK_REPORTING AS (
 SELECT coalesce(next_reporting_date, date) as date,
 CONCAT(DATE_FORMAT(COALESCE(next_reporting_date, date), '%b'), '-', YEAR(COALESCE(next_reporting_date, date))) AS month,
@@ -52,12 +56,14 @@ FROM REPORTING_WITH_FLAG AS R
 LEFT JOIN REPORTING_LOOKUP AS L ON non_reporting_date = R.date
 GROUP BY 1,2
 )
+    
 , UK_LAST_DAY as (
 SELECT month,
 MAX(date) as last_date
 FROM UK_REPORTING
 group by month
 )
+    
 , UK_REPORTING_ADJ AS(
 SELECT 
     CASE 
@@ -77,6 +83,7 @@ LEFT JOIN UK_LAST_DAY AS L
     ON UK.date = L.last_date
 WHERE date < '2023-12-31'
 )
+    
 , ROI_DATA AS (
 SELECT `Reporting Month` as roi_reporting_month,
 `Reporting Day` as roi_reporting_day,
@@ -84,6 +91,7 @@ SELECT `Reporting Month` as roi_reporting_month,
 `Reporting Date` as roi_reporting_date
 FROM pd_week12_newcustrep
 )
+    
 , MATCHING_UK_DATES AS (
 SELECT reporting_month,
 reporting_day,
@@ -94,6 +102,7 @@ roi_reporting_month
 FROM UK_REPORTING_ADJ AS UK
 left JOIN ROI_DATA AS ROI ON UK.date = ROI.roi_reporting_date
 )
+    
 , ROI_DATA_ADJ AS(
 SELECT 
 roi_reporting_month,
@@ -110,6 +119,7 @@ roi_reporting_day,
 roi_new_customers,
 roi_reporting_date
 )
+    
 , COMBINED AS (
 SELECT reporting_month,
 reporting_day,
